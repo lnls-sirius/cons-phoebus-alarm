@@ -1,0 +1,11 @@
+version: '3.7'
+services:
+  epics:
+    image: lnlscon/alarm-server:v1.0
+    build:
+      context: "."
+      dockerfile: "Dockerfile"
+      labels:
+        - "br.com.lnls-sirius.description=EPICS Alarm Server"
+        - "br.com.lnls-sirius.department=CONS"
+        - "br.com.lnls-sirius.maintener=Claudio Ferreira Carneiro"
