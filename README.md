@@ -1,4 +1,7 @@
-## JDK11+ (Amazon Coretto)[https://d3pxv6yz143wms.cloudfront.net/11.0.5.10.1/amazon-corretto-11.0.5.10.1-linux-x64.tar.gz]
+## JDK11+ Amazon Coretto
+
+[Download](https://d3pxv6yz143wms.cloudfront.net/11.0.5.10.1/amazon-corretto-11.0.5.10.1-linux-x64.tar.gz)
+
 ```
 # cd /opt
 # wget http://10.0.38.42/download/etc/amazon-corretto-11.0.5.10.1-linux-x64.tar.gz
