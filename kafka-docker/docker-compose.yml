@@ -1,0 +1,17 @@
+version: '3.7'
+services:
+  alarm-server:
+    image: lnlscon/alarm-server:v1.0
+    network_mode: host
+    environment:
+      - "IP=10.0.6.48"
+    volumes:
+      - "/var/tmp/zoo:/opt/data/zookeeper:rw"
+      - "/var/tmp/kafka:/opt/data/kafka-logs:rw"
+    build:
+      context: "."
+      dockerfile: "Dockerfile"
+      labels:
+        - "br.com.lnls-sirius.description=EPICS Alarm Server"
+        - "br.com.lnls-sirius.department=CONS"
+        - "br.com.lnls-sirius.maintener=Claudio Ferreira Carneiro"
