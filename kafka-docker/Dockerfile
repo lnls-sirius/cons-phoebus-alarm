@@ -61,6 +61,8 @@ RUN git clone https://github.com/vishnubob/wait-for-it.git &&\
     chmod +x /opt/wait-for-it/wait-for-it.sh &&\
     ln -s /opt/wait-for-it/wait-for-it.sh /bin/wait-for-it
 
+RUN mkdir -p /opt/alarm-config-repo
+
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 
 # Init stuff

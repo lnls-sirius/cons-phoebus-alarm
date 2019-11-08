@@ -3,8 +3,6 @@ services:
   alarm-server:
     image: lnlscon/alarm-server:v1.0
     network_mode: host
-    environment:
-      - "IP=10.0.6.48"
     volumes:
       - "/var/tmp/zoo:/opt/data/zookeeper:rw"
       - "/var/tmp/kafka:/opt/data/kafka-logs:rw"

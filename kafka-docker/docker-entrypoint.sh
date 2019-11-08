@@ -31,13 +31,19 @@ echo "Starting alarm-server for topic Accelerator" &&\
 
 # Config Log
 aux=$IP:9092
+cat > '/opt/phoebus/services/alarm-config-logger/settings.ini' << EOF
+bootstrap.servers=${aux}
+alarm_topics=Accelerator
+local.location=/opt/alarm-config-repo
+remote.location=
+username=username
+password=password
+EOF
+
 mkdir -p /opt/alarm-config-repo &&\
     echo "Starting alarm-config-logger for topic Accelerator" &&\
     cd /opt/phoebus/services/alarm-config-logger &&\
-    java -jar target/service-alarm-config-logger-*.jar \
-        -topics Accelerator \
-        -repo.location /opt/alarm-config-repo \
-        -bootstrap.servers $aux &
+    java -jar target/service-alarm-config-logger-*.jar -properties /opt/phoebus/services/alarm-config-logger/settings.ini &
 
 # Elasticsearch
 cat > '/opt/elasticsearch/config/elasticsearch.yml' << EOF
