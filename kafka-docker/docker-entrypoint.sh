@@ -57,4 +57,21 @@ wait-for-it -t 0 ${IP}:9200
 
 ( cd /opt/phoebus/services/alarm-logger/startup && sh create_alarm_index.sh accelerator)
 
+cat > '/opt/phoebus/services/alarm-logger/settings.properties' << EOF
+alarm_topics=Accelerator
+es_host=localhost
+es_port=9200
+es_max_size=1000
+es_sniff=false
+bootstrap.servers=localhost:9092
+date_span_units=M
+date_span_value=1
+EOF
+sed -i -e "s/localhost/$IP/g" /opt/phoebus/services/alarm-logger/settings.properties
+
+( cd /opt/phoebus/services/alarm-logger && \
+    java -jar target/service-alarm-logger*.jar \
+        -properties /opt/phoebus/services/alarm-logger/settings.properties \
+        -noshell )
+
 tail -f /dev/null
