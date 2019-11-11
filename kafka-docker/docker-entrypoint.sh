@@ -1,9 +1,9 @@
 #!/bin/bash
 set -x
 IP=$(hostname)
-(cd /opt/kafka &&\
-    sed -i -e 's/dataDir=.*/dataDir=\/opt\/data\/zookeeper/' config/zookeeper.properties)
-(cd /opt/kafka &&\
+cd /opt/kafka &&\
+    sed -i -e 's/dataDir=.*/dataDir=\/opt\/data\/zookeeper/' config/zookeeper.properties
+cd /opt/kafka &&\
     mkdir -p /opt/data/kafka-logs &&\
     sed -i \
         -e 's/zookeeper.connection.timeout.ms=.*/zookeeper.connection.timeout.ms=300000/' \
@@ -11,18 +11,18 @@ IP=$(hostname)
         -e "31s/.*/listeners=PLAINTEXT:\/\/${IP//\./\\\.}:9092/g" \
         config/server.properties &&\
     echo "" >> config/server.properties &&\
-    echo "auto.create.topics.enable=false" >> config/server.properties)
+    echo "auto.create.topics.enable=false" >> config/server.properties
 
 # Start zookeeper
-(echo "Starting zookeeper" && cd /opt/kafka; bin/zookeeper-server-start.sh -daemon config/zookeeper.properties)
+echo "Starting zookeeper" && cd /opt/kafka; bin/zookeeper-server-start.sh -daemon config/zookeeper.properties
 wait-for-it -t 0 localhost:2181
 sleep 5
 
 # Start kafka
-(echo "Starting Kafta" && cd /opt/kafka; bin/kafka-server-start.sh -daemon config/server.properties)
+echo "Starting Kafta" && cd /opt/kafka; bin/kafka-server-start.sh -daemon config/server.properties
 wait-for-it -t 0 ${IP}:9092
 
-(echo "Creating Accelerator topic" && cd /opt/phoebus/app/alarm/examples/ && ln -s /opt/kafka . && ./create_alarm_topics.sh Accelerator)
+echo "Creating Accelerator topic" && cd /opt/phoebus/app/alarm/examples/ && ln -s /opt/kafka . && ./create_alarm_topics.sh Accelerator
 
 # Start Alarm Server
 echo "Starting alarm-server for topic Accelerator" &&\
@@ -52,10 +52,10 @@ network.host: 0.0.0.0
 http.port: 9200
 EOF
 
-( echo "Starting Elasticsearch" && runuser -m elastic -c 'cd /opt/elasticsearch && ./bin/elasticsearch' )&
+echo "Starting Elasticsearch" && runuser -m elastic -c 'cd /opt/elasticsearch && ./bin/elasticsearch &'
 wait-for-it -t 0 ${IP}:9200
 
-( cd /opt/phoebus/services/alarm-logger/startup && sh create_alarm_index.sh accelerator)
+cd /opt/phoebus/services/alarm-logger/startup && sh create_alarm_index.sh accelerator
 
 cat > '/opt/phoebus/services/alarm-logger/settings.properties' << EOF
 alarm_topics=Accelerator
@@ -69,9 +69,9 @@ date_span_value=1
 EOF
 sed -i -e "s/localhost/$IP/g" /opt/phoebus/services/alarm-logger/settings.properties
 
-( cd /opt/phoebus/services/alarm-logger && \
+cd /opt/phoebus/services/alarm-logger && \
     java -jar target/service-alarm-logger*.jar \
         -properties /opt/phoebus/services/alarm-logger/settings.properties \
-        -noshell )
+        -noshell
 
 tail -f /dev/null
