@@ -1,0 +1,3 @@
+[submodule "phoebus"]
+	path = phoebus
+	url = https://github.com/shroffk/phoebus.git
