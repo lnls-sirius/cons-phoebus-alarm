@@ -3,10 +3,17 @@ version: '3.7'
 services:
   alarm-server:
     image: lnlscon/alarm-server:v1.1
+    #ports:
+    #  - 5064:5064/udp
     network_mode: host
     #volumes:
     #  - "/var/tmp/zoo:/opt/data/zookeeper:rw"
     #  - "/var/tmp/kafka:/opt/data/kafka-logs:rw"
+    environment:
+      ZOO_HOST: carneirofc-pc
+      ZOO_PORT: 2181
+      KAFKA_HOST: carneirofc-pc
+      KAFKA_PORT: 29094
     build:
       context: "."
       dockerfile: "Dockerfile"
@@ -17,6 +24,8 @@ services:
   
   zookeeper:
     image: "confluentinc/cp-zookeeper:5.2.1"
+    ports:
+      - 2181:2181
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
