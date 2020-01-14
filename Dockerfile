@@ -39,7 +39,10 @@ RUN cd /opt && wget https://controlssoftware.sns.ornl.gov/css_phoebus/nightly/al
     unzip alarm-logger-4.6.0.zip && rm -f alarm-logger-4.6.0.zip && mv alarm-logger-4.6.0 alarm-logger
 
 COPY phoebus/services/alarm-logger/startup/create_alarm_template.sh /opt/create_alarm_template.sh
-RUN chmod +x /opt/create_alarm_template.sh && sed -i -e '/es_host=localhost/d' -e '/es_port=9200/d' /opt/create_alarm_template.sh
+COPY phoebus/services/alarm-logger/startup/create_alarm_index.sh    /opt/create_alarm_index.sh
+
+RUN chmod +x /opt/create_alarm_template.sh && sed -i -e '/es_host=localhost/d' -e '/es_port=9200/d' /opt/create_alarm_template.sh &&\
+    chmod +x /opt/create_alarm_index.sh    && sed -i -e '/es_host=localhost/d' -e '/es_port=9200/d' /opt/create_alarm_index.sh
 
 COPY docker-entrypoint-logger.sh /docker-entrypoint.sh
 
