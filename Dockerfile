@@ -1,4 +1,4 @@
-FROM openjdk:11.0.5-jdk-stretch
+FROM openjdk:11.0.5-jdk-stretch as server
 
 WORKDIR /opt
 
@@ -23,4 +23,24 @@ COPY phoebus/app/alarm/examples/create_alarm_topics.sh /opt/create_alarm_topics.
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 
 # Init stuff
+CMD /bin/bash /docker-entrypoint.sh
+
+FROM openjdk:11.0.5-jdk-stretch as logger
+
+WORKDIR /opt
+
+# Wait-for-it
+RUN git clone https://github.com/vishnubob/wait-for-it.git &&\
+    chmod +x /opt/wait-for-it/wait-for-it.sh &&\
+    ln -s /opt/wait-for-it/wait-for-it.sh /bin/wait-for-it
+
+# Phoebus alarm logger
+RUN cd /opt && wget https://controlssoftware.sns.ornl.gov/css_phoebus/nightly/alarm-logger-4.6.0.zip &&\
+    unzip alarm-logger-4.6.0.zip && rm -f alarm-logger-4.6.0.zip && mv alarm-logger-4.6.0 alarm-logger
+
+COPY phoebus/services/alarm-logger/startup/create_alarm_template.sh /opt/create_alarm_template.sh
+RUN chmod +x /opt/create_alarm_template.sh && sed -i -e '/es_host=localhost/d' -e '/es_port=9200/d' /opt/create_alarm_template.sh
+
+COPY docker-entrypoint-logger.sh /docker-entrypoint.sh
+
 CMD /bin/bash /docker-entrypoint.sh
