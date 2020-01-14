@@ -97,7 +97,7 @@ services:
         condition: on-failure
 
   zookeeper:
-    image: "confluentinc/cp-zookeeper:5.2.1"
+    image: "wurstmeister/zookeeper:3.4.6"
     hostname: zookeeper
     ports:
       - 2181:2181
@@ -120,20 +120,22 @@ services:
         condition: on-failure
 
   kafka0:
-    image: "confluentinc/cp-enterprise-kafka:5.2.1"
+    image: "wurstmeister/kafka:2.12-2.2.2"
     hostname: kafka0
     ports:
-      - '9092:9092'
-      - '29094:29094'
+      - target: 9094
+        published: 9094
+        protocol: tcp
+        mode: host
     depends_on:
       - zookeeper
     environment:
-      HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
+      HOSTNAME_COMMAND: "docker info | grep '^\s*Name:' | tr -d '[:space:]'| cut -d':' -f 2"
       KAFKA_BROKER_ID: 0
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENERS: LISTENER_INTERNAL://:29092,LISTENER_EXTERNAL://:29094
-      KAFKA_ADVERTISED_LISTENERS: LISTENER_INTERNAL://:29092,LISTENER_EXTERNAL://_{HOSTNAME_COMMAND}:29094
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_INTERNAL:PLAINTEXT,LISTENER_EXTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_INTERNAL://:9092,LISTENER_EXTERNAL://_{HOSTNAME_COMMAND}:9094
+      KAFKA_LISTENERS: LISTENER_INTERNAL://:9092,LISTENER_EXTERNAL://:9094
       KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_INTERNAL
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -152,8 +154,8 @@ services:
       replicas: 1
       restart_policy:
         condition: on-failure
-#    volumes:
-#      - /var/run/docker.sock:/var/run/docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
 
   kafkacat:
     image: confluentinc/cp-kafkacat
