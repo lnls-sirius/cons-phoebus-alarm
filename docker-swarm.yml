@@ -1,0 +1,165 @@
+---
+version: '3.7'
+services:
+  alarm-server:
+    image: lnlscon/alarm-server:v1.1
+    networks:
+      - host
+    environment:
+      ZOO_PORT: 2181
+      KAFKA_PORT: 9094
+    dns_search:
+      - lnls-sirius.com.br 
+      - abtlus.org.br
+    dns:
+      - 10.128.255.7
+      - 10.0.0.71
+      - 10.0.0.72
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == CA-RaCtrl-CO-Srv-1
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+  
+  alarm-logger:
+    image: lnlscon/alarm-logger:v1.1
+    networks:
+      - host
+    environment:
+      ES_PORT: 9202
+      KAFKA_PORT: 9094
+    dns_search:
+      - lnls-sirius.com.br 
+      - abtlus.org.br
+    dns:
+      - 10.128.255.7
+      - 10.0.0.71
+      - 10.0.0.72
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == CA-RaCtrl-CO-Srv-1
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.8.2
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - http.cors.enabled=true
+      - http.cors.allow-origin=*
+      - discovery.type=single-node
+    hostname: es
+    volumes:
+      - "/storage/services/phoebus-alarm/es0:/usr/share/elasticsearch/data:rw"
+    ports:
+      - 9202:9200
+    dns_search:
+      - lnls-sirius.com.br 
+      - abtlus.org.br
+    dns:
+      - 10.128.255.7
+      - 10.0.0.71
+      - 10.0.0.72
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == CA-RaCtrl-CO-Srv-1
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:6.8.4
+    hostname: kibana
+    ports:
+        - "5602:5601"
+    environment:
+      SERVER_NAME: epics.logging.kibana
+      ELASTICSEARCH_HOSTS: http://es:9200
+    dns_search:
+      - lnls-sirius.com.br 
+      - abtlus.org.br
+    dns:
+      - 10.128.255.7
+      - 10.0.0.71
+      - 10.0.0.72
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == CA-RaCtrl-CO-Srv-1
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  zookeeper:
+    image: "wurstmeister/zookeeper:3.4.6"
+    hostname: zookeeper
+    volumes:
+      - "/storage/services/phoebus-alarm/zoo:/opt/zookeeper-3.4.6/data:rw"
+    ports:
+      - 2181:2181
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    dns_search:
+      - lnls-sirius.com.br 
+      - abtlus.org.br
+    dns:
+      - 10.128.255.7
+      - 10.0.0.71
+      - 10.0.0.72
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == CA-RaCtrl-CO-Srv-1
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  kafka0:
+    image: "wurstmeister/kafka:2.12-2.2.2"
+    hostname: kafka0
+    volumes:
+      - "/storage/services/phoebus-alarm/kafka0:/kafka/kafka-logs:rw"
+    ports:
+      - target: 9094
+        published: 9094
+        protocol: tcp
+        mode: host
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 0
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_INTERNAL:PLAINTEXT,LISTENER_EXTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_INTERNAL://:9092,LISTENER_EXTERNAL://CA-RaCtrl-CO-Srv-1:9094
+      KAFKA_LISTENERS: LISTENER_INTERNAL://:9092,LISTENER_EXTERNAL://:9094
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_INTERNAL
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
+      KAFKA_LOG_DIRS: "/kafka/kafka-logs"
+
+    dns_search:
+      - lnls-sirius.com.br 
+      - abtlus.org.br
+    dns:
+      - 10.128.255.7
+      - 10.0.0.71
+      - 10.0.0.72
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == CA-RaCtrl-CO-Srv-1
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+networks:
+  host:
+    external:
+      name: "host"
