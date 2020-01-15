@@ -5,12 +5,9 @@ services:
     image: lnlscon/alarm-server:v1.1
     networks:
       - host
-    #volumes:
-    #  - "/var/tmp/zoo:/opt/data/zookeeper:rw"
-    #  - "/var/tmp/kafka:/opt/data/kafka-logs:rw"
     environment:
       ZOO_PORT: 2181
-      KAFKA_PORT: 29094
+      KAFKA_PORT: 9094
     dns_search:
       - lnls-sirius.com.br 
       - abtlus.org.br
@@ -32,7 +29,7 @@ services:
       - host
     environment:
       ES_PORT: 9202
-      KAFKA_PORT: 29094
+      KAFKA_PORT: 9094
     dns_search:
       - lnls-sirius.com.br 
       - abtlus.org.br
@@ -56,6 +53,8 @@ services:
       - http.cors.allow-origin=*
       - discovery.type=single-node
     hostname: es
+    volumes:
+      - "/storage/services/phoebus-alarm/es0:/usr/share/elasticsearch/data:rw"
     ports:
       - 9202:9200
     dns_search:
@@ -99,6 +98,8 @@ services:
   zookeeper:
     image: "wurstmeister/zookeeper:3.4.6"
     hostname: zookeeper
+    volumes:
+      - "/storage/services/phoebus-alarm/zoo:/opt/zookeeper-3.4.6/data:rw"
     ports:
       - 2181:2181
     environment:
@@ -122,6 +123,8 @@ services:
   kafka0:
     image: "wurstmeister/kafka:2.12-2.2.2"
     hostname: kafka0
+    volumes:
+      - "/storage/services/phoebus-alarm/kafka0:/kafka/kafka-logs:rw"
     ports:
       - target: 9094
         published: 9094
@@ -130,36 +133,17 @@ services:
     depends_on:
       - zookeeper
     environment:
-      HOSTNAME_COMMAND: "docker info | grep '^\s*Name:' | tr -d '[:space:]'| cut -d':' -f 2"
       KAFKA_BROKER_ID: 0
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_INTERNAL:PLAINTEXT,LISTENER_EXTERNAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: LISTENER_INTERNAL://:9092,LISTENER_EXTERNAL://_{HOSTNAME_COMMAND}:9094
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_INTERNAL://:9092,LISTENER_EXTERNAL://CA-RaCtrl-CO-Srv-1:9094
       KAFKA_LISTENERS: LISTENER_INTERNAL://:9092,LISTENER_EXTERNAL://:9094
       KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_INTERNAL
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
-    dns_search:
-      - lnls-sirius.com.br 
-      - abtlus.org.br
-    dns:
-      - 10.128.255.7
-      - 10.0.0.71
-      - 10.0.0.72
-    deploy:
-      placement:
-        constraints:
-          - node.hostname == CA-RaCtrl-CO-Srv-1
-      replicas: 1
-      restart_policy:
-        condition: on-failure
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      KAFKA_LOG_DIRS: "/kafka/kafka-logs"
 
-  kafkacat:
-    image: confluentinc/cp-kafkacat
-    command: sleep infinity
     dns_search:
       - lnls-sirius.com.br 
       - abtlus.org.br
