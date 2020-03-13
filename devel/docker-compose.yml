@@ -12,7 +12,7 @@ services:
       KAFKA_PORT: 29094
     build:
       target: server
-      context: "."
+      context: "../"
       dockerfile: "Dockerfile"
       labels:
         - "br.com.lnls-sirius.description=EPICS Alarm Server"
@@ -27,7 +27,7 @@ services:
       KAFKA_PORT: 29094
     build:
       target: logger
-      context: "."
+      context: "../"
       dockerfile: "Dockerfile"
       labels:
         - "br.com.lnls-sirius.description=EPICS Alarm Logger"
